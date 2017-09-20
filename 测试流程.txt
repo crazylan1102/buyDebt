@@ -1,0 +1,74 @@
+*** Settings ***
+Resource          公共.txt
+Resource          初始化数据.txt
+Resource          二层业务.txt
+
+*** Test Cases ***
+充值到放款
+    [Documentation]    从用户充值、实名、绑卡、到发标、购买、放款整个过程
+    Comment    实名认证和充值
+    @{telephones}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    5
+    log many    @{telephones}
+    Comment    发标
+    ${borrow_amount}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    A1
+    log    ${borrow_amount}
+    ${categoryId}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    B1
+    log    ${categoryId}
+    ${categoryId}    Convert to Integer    ${categoryId}
+    log    ${categoryId}
+    ${period}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    C1
+    ${period_unit}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    D1
+    ${loan_id}    债权申请    ${borrow_amount}    ${categoryId}    ${period}    ${period_unit}
+    ${debt_id}    债权配置    ${loan_id}    ${categoryId}
+    债权上线    ${debt_id}
+    Comment    批量用户购买
+    @{usernames}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    4
+    @{password}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    7
+    @{buy_amount}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    6
+    ${length}=    Get Length    ${buy_amount}
+    ${index}    Set Variable    0
+    : FOR    ${i}    IN RANGE    ${length}
+    \    债权购买    ${debt_id}    @{usernames}[${index}]    @{buy_amount}[${index}]    @{password}[${index}]
+    \    ${index}    Evaluate    ${index}+1
+    自动放款    ${debt_id}
+
+发标到买标到放款
+    [Documentation]    适用于用户已实名、有账户余额。 \ 从发标、购买到放款
+    Comment    实名认证和充值
+    Comment    发标
+    ${borrow_amount}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    A1
+    log    ${borrow_amount}
+    ${categoryId}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    B1
+    log    ${categoryId}
+    ${categoryId}    Convert to Integer    ${categoryId}
+    log    ${categoryId}
+    ${period}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    C1
+    ${period_unit}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    D1
+    ${loan_id}    债权申请    ${borrow_amount}    ${categoryId}    ${period}    ${period_unit}
+    ${debt_id}    债权配置    ${loan_id}    ${categoryId}
+    债权上线    ${debt_id}
+    Comment    批量用户购买
+    @{usernames}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    4
+    @{password}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    7
+    @{buy_amount}    读excel列数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    6
+    ${length}=    Get Length    ${buy_amount}
+    ${index}    Set Variable    0
+    : FOR    ${i}    IN RANGE    ${length}
+    \    债权购买    ${debt_id}    @{usernames}[${index}]    @{buy_amount}[${index}]    @{password}[${index}]
+    \    ${index}    Evaluate    ${index}+1
+    自动放款    ${debt_id}
+
+发标
+    [Documentation]    适用于用户已实名、有账户余额。 \ 从发标、购买到放款
+    Comment    发标
+    ${borrow_amount}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    A1
+    log    ${borrow_amount}
+    ${categoryId}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    B1
+    log    ${categoryId}
+    ${categoryId}    Convert to Integer    ${categoryId}
+    log    ${categoryId}
+    ${period}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    C1
+    ${period_unit}    读excel单格数据    E:\\myself\\robotFramePro\\投资\\投资数据.xls    D1
+    ${loan_id}    债权申请    ${borrow_amount}    ${categoryId}    ${period}    ${period_unit}
+    ${debt_id}    债权配置    ${loan_id}    ${categoryId}
+    债权上线    ${debt_id}

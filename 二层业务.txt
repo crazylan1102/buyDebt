@@ -1,0 +1,72 @@
+*** Settings ***
+Resource          初始化数据.txt
+Library           Date Time
+
+*** Keywords ***
+债权申请
+    [Arguments]    ${borrowAmount}    ${categoryId}    ${period}    ${period_unit}
+    Comment    获取网管接口返回的数据
+    Create session    getasset    http://core.debt.svc
+    &{data1}=    Create Dictionary    uid=majun    amount=${borrowAmount}    period=${period}    periodUnit=${period_unit}    rate=10
+    ...    repaymentWay=1    description=fabiao
+    ${data}=    Set Variable    ${data1}
+    &{data2}=    Create Dictionary    uid=majun    amount=${borrowAmount}    period=${period}    periodUnit=${period_unit}    rate=10
+    ...    repaymentWay=1    description=fabiao    extra={"id":5656,"amount":873629.07,"averageRate":10.6884,"transferRate":8.01,"detail":[{"id":17293,"platform":"投哪网","title":"企业借款CSJB160718160009","amount":373329.07,"period":30,"rate":9.6,"reward":0,"cost":0}]}
+    ${data}=    Set Variable If    ${categoryId}==4    ${data2}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${resp}=    Post Request    getasset    /api/loans    data=${data}    headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    200
+    ${jsonresp}    json.loads    ${resp.content}
+    ${loan_id}    get from dictionary    ${jsonresp}    id
+    log    ${loan_id}
+    [Return]    ${loan_id}
+
+债权配置
+    [Arguments]    ${loan_id}    ${categoryId}
+    Comment    债权购买
+    Create session    getasset    http://core.debt.svc
+    &{data}=    Create Dictionary    loanId=${loan_id}    categoryId=${categoryId}
+    log    ${loan_id}
+    log    ${categoryId}
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${resp}=    Post Request    getasset    /api/debts/package    data=${data}    headers=${headers}
+    Should Be Equal As Strings    ${resp.status_code}    200
+    ${jsonresp}    json.loads    ${resp.content}
+    ${borrow_id}    get from dictionary    ${jsonresp}    id
+    [Return]    ${borrow_id}
+
+债权上线
+    [Arguments]    ${borrow_id}
+    Comment    债权配置
+    Create session    getasset    http://core.debt.svc
+    ${time}    Get Time
+    log    ${time}
+    ${time}    Add Time To Date    ${time}    00:01:10
+    log    ${time}
+    &{data}=    Create Dictionary    debtId=${borrow_id}    operator=admin    operateAt=2016-05-13 14:05:00    openInvestAt=${time}    description=test
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${resp}=    Post Request    getasset    /api/debts/${borrow_id}/online    data=${data}    headers=${headers}
+    log    ${resp.json()}
+    Should Be Equal As Strings    ${resp.status_code}    200
+    sleep    100
+
+债权购买
+    [Arguments]    ${borrow_id}    ${username}    ${amount}    ${password}
+    Comment    债权配置
+    Create session    getasset    http://core.debt.svc
+    &{data}=    Create Dictionary    debtId=${borrow_id}    uid=${username}    amount=${amount}    channel=3    investIp=10.255.1.97
+    ...    type=NORAML    tradePwd=${password}    investType=1
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${resp}=    Post Request    getasset    /api/debts/${borrow_id}/invest    data=${data}    headers=${headers}
+    log    ${resp.json()}
+    Should Be Equal As Strings    ${resp.status_code}    200
+
+自动放款
+    [Arguments]    ${borrow_id}
+    Comment    自动放款
+    Create session    getasset    http://core.debt.svc
+    &{data}=    Create Dictionary    operator=admin    operateAt=2016-05-13 14:05:00    description=test
+    &{headers}=    Create Dictionary    Content-Type=application/json
+    ${resp}=    Post Request    getasset    /api/debts/${borrow_id}/deal    data=${data}    headers=${headers}
+    log    ${resp.json()}
+    Should Be Equal As Strings    ${resp.status_code}    200

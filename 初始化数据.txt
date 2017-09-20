@@ -1,0 +1,9 @@
+*** Settings ***
+Resource          公共.txt
+
+*** Keywords ***
+批量用户实名认证和充值
+    [Arguments]    @{telephonelist}
+    : FOR    ${telephone}    IN    @{telephonelist}
+    \    log    ${telephone}
+    \    单个用户实名认证和充值    ${telephone}

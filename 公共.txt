@@ -1,0 +1,32 @@
+*** Settings ***
+Library           Selenium2Library
+Library           ExcelLibrary
+Library           Collections
+Library           RequestsLibrary
+Library           requests
+Library           json
+Library           DatabaseLibrary
+
+*** Keywords ***
+读excel单格数据
+    [Arguments]    ${location}    ${cell}
+    Open Excel    ${location}
+    ${data}    Read Cell Data By Name    data    ${cell}
+    [Return]    ${data}
+
+单个用户实名认证和充值
+    [Arguments]    ${telephone}
+    Comment    单个用户实名认证和充值
+    Connect To Database    pymysql    touzhijia    root    tzj    10.255.8.39    3306
+    Execute Sql String    UPDATE debt.debt_user_account da, \ touzhijia.tzj_user tu, \ tzj_wallet.account ac SET da.balance_amount ='20000', \ \ \ \ tu.id_card="430625126655325632", \ \ \ \ tu.id_card_name="hello", \ \ \ \ tu.id_card_flag=1, \ \ \ \ tu.bank_id="6215563222232563569", \ \ \ \ tu.bank_flag=1, \ \ \ \ ac.balance='20000', \ \ \ \ ac.amount='20000' WHERE da.user_name = tu.username and tu.username=ac.uid AND tu.telephone in(${telephone})
+
+读excel列数据
+    [Arguments]    ${location}    ${coloum}
+    Open Excel    ${location}
+    @{dataCollection}    Get Column Values    data    ${coloum}
+    ${datalists}    Create List
+    : FOR    ${data}    IN    @{dataCollection}
+    \    log    ${data[1]}
+    \    Append To List    ${datalists}    ${data[1]}
+    log many    ${datalists}
+    [Return]    ${datalists}
