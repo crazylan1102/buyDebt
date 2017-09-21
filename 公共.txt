@@ -29,4 +29,5 @@ Library           DatabaseLibrary
     \    log    ${data[1]}
     \    Append To List    ${datalists}    ${data[1]}
     log many    ${datalists}
+    log many    ${datalists}
     [Return]    ${datalists}
